@@ -1,6 +1,6 @@
 {
-  "name": "contentful-migrate",
-  "version": "0.15.0",
+  "name": "contentful-migrate-bse",
+  "version": "0.1.0",
   "description": "Migration tooling for Contentful, with state management",
   "keywords": [
     "migrate",
@@ -28,7 +28,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/deluan/contentful-migrate.git"
+    "url": "git+https://github.com/bemaxima/contentful-migrate.git"
   },
   "contributors": [
     "Deluan Quintao",
@@ -36,9 +36,9 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/deluan/contentful-migrate/issues"
+    "url": "https://github.com/bemaxima/contentful-migrate/issues"
   },
-  "homepage": "https://github.com/deluan/contentful-migrate#readme",
+  "homepage": "https://github.com/bemaxima/contentful-migrate#readme",
   "devDependencies": {
     "expect.js": "^0.3.1",
     "growl": "^1.10.5",
