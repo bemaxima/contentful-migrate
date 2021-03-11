@@ -20,22 +20,36 @@ exports.builder = (yargs) => {
       requiresArg: true,
       demandOption: true
     })
+    .option('migration-path', {
+      alias: 'p',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: 'migrations'
+    })
+    .option('extension', {
+      alias: 'ext',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: '.js'
+    })
     .positional('name', {
       describe: 'descriptive name for the migration file',
       type: 'string'
     })
 }
 
-exports.handler = ({ name, contentType }) => {
-  const migrationsDirectory = path.join('.', 'migrations', contentType)
-  const templateFile = path.join(__dirname, '..', '..', 'lib', 'template.js')
+exports.handler = ({ name, contentType, migrationPath, extension }) => {
+  const migrationsDirectory = path.join('.', migrationPath, contentType)
+  const templateFile = path.join(__dirname, '..', '..', 'lib', `template${extension}`)
 
   generator({
     name,
     templateFile,
     migrationsDirectory,
     dateFormat: 'UTC:yyyymmddHHMMss',
-    extension: '.js'
+    extension: `${extension}`
   }, (error, filename) => {
     if (error) {
       log(chalk.bold.red(`🚨 Template generation error ${error.message}`))

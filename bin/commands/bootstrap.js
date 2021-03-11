@@ -45,6 +45,20 @@ exports.builder = (yargs) => {
       array: true,
       default: []
     })
+    .option('migration-path', {
+      alias: 'p',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: 'migrations'
+    })
+    .option('extension', {
+      alias: 'ext',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: '.js'
+    })
     .option('all', {
       alias: 'a',
       describe: 'lists migrations for all content types',
@@ -68,7 +82,9 @@ exports.handler = async (args) => {
     environmentId,
     spaceId,
     contentType,
-    accessToken
+    accessToken,
+    migrationPath,
+    extension
   } = args
 
   const rl = readline.createInterface({
@@ -84,7 +100,7 @@ exports.handler = async (args) => {
     })
   }
 
-  const migrationsDirectory = path.join('.', 'migrations')
+  const migrationsDirectory = path.join('.', migrationPath)
   let writeMigrationState = false
   if (contentType.length > 0) {
     const answer = await asyncQuestion(chalk.bold.yellow(`⚠️   Do you want to generate initial migration state for ${contentType}? y/N: `))
@@ -99,5 +115,5 @@ exports.handler = async (args) => {
     }
   }
   rl.close()
-  await bootstrap(spaceId, environmentId, contentType, accessToken, migrationsDirectory, writeMigrationState)
+  await bootstrap(spaceId, environmentId, contentType, accessToken, migrationsDirectory, writeMigrationState, extension)
 }

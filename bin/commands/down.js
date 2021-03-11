@@ -5,6 +5,7 @@ const path = require('path')
 const runMigrations = require('migrate/lib/migrate')
 const log = require('migrate/lib/log')
 const load = require('../../lib/load')
+const registerCompiler = require('migrate/lib/register-compiler')
 
 exports.command = 'down [file]'
 
@@ -43,15 +44,44 @@ exports.builder = (yargs) => {
       describe: 'single content type name to process',
       demandOption: true
     })
+    .option('migration-path', {
+      alias: 'p',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: 'migrations'
+    })
     .option('dry-run', {
       alias: 'd',
       describe: 'only shows the planned actions, don\'t write anything to Contentful',
       boolean: true,
       default: false
     })
+    .option('compiler-path', {
+      alias: 'cp',
+      describe: 'compiler path',
+      type: 'string',
+      requiresArg: true,
+      demandOption: true,
+      default: process.env.COMPILER_PATH,
+      defaultDescription: 'environment var CONTENTFUL_ENV_ID if exists, otherwise master'
+    })
+    .option('extension', {
+      alias: 'ext',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: '.js'
+    })
     .positional('file', {
       describe: 'If specified, rollback all migrations scripts down to this one.',
       type: 'string'
+    })
+    .check((argv) => {
+      if ((argv.extension && !argv.compilerPath) || (!argv.extension && argv.compilerPath)) {
+        return 'Both [extension] and [compiler-path] muse be specified together.'
+      }
+      return true
     })
 }
 
@@ -62,10 +92,15 @@ exports.handler = async (args) => {
     dryRun,
     environmentId,
     file,
-    spaceId
+    spaceId,
+    migrationPath,
+    extension,
+    compilerPath
   } = args
-
-  const migrationsDirectory = path.join('.', 'migrations')
+  if (compilerPath && extension) {
+    registerCompiler(`${extension}:${compilerPath}`)
+  }
+  const migrationsDirectory = path.join('.', migrationPath)
 
   const processSet = (set) => {
     const name = (file) || set.lastRun

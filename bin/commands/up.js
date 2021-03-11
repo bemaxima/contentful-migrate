@@ -7,6 +7,7 @@ const { promisify } = require('util')
 const chalk = require('chalk')
 const pMap = require('p-map')
 const runMigrations = require('migrate/lib/migrate')
+const registerCompiler = require('migrate/lib/register-compiler')
 const log = require('migrate/lib/log')
 const load = require('../../lib/load')
 
@@ -34,6 +35,15 @@ exports.builder = (yargs) => {
       default: process.env.CONTENTFUL_SPACE_ID,
       defaultDescription: 'environment var CONTENTFUL_SPACE_ID'
     })
+    .option('compiler-path', {
+      alias: 'cp',
+      describe: 'compiler path',
+      type: 'string',
+      requiresArg: true,
+      demandOption: true,
+      default: process.env.COMPILER_PATH,
+      defaultDescription: 'environment var CONTENTFUL_ENV_ID if exists, otherwise master'
+    })
     .option('environment-id', {
       alias: 'e',
       describe: 'id of the environment within the space',
@@ -41,6 +51,13 @@ exports.builder = (yargs) => {
       requiresArg: true,
       default: process.env.CONTENTFUL_ENV_ID || 'master',
       defaultDescription: 'environment var CONTENTFUL_ENV_ID if exists, otherwise master'
+    })
+    .option('migration-path', {
+      alias: 'p',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: 'migrations'
     })
     .option('content-type', {
       alias: 'c',
@@ -59,6 +76,13 @@ exports.builder = (yargs) => {
       boolean: true,
       default: false
     })
+    .option('extension', {
+      alias: 'ext',
+      describe: 'migration path directory',
+      type: 'string',
+      requiresArg: true,
+      default: '.js'
+    })
     .positional('file', {
       describe: 'If specified, applies all pending migrations scripts up to this one.',
       type: 'string'
@@ -73,6 +97,9 @@ exports.builder = (yargs) => {
       if (argv.a && argv.file) {
         return '[file] cannot be specified together with \'all\' option'
       }
+      if ((argv.extension && !argv.compilerPath) || (!argv.extension && argv.compilerPath)) {
+        return 'Both [extension] and [compiler-path] muse be specified together.'
+      }
       return true
     })
 }
@@ -86,10 +113,15 @@ exports.handler = async (args) => {
     dryRun,
     environmentId,
     file,
-    spaceId
+    spaceId,
+    migrationPath,
+    compilerPath,
+    extension
   } = args
-
-  const migrationsDirectory = path.join('.', 'migrations')
+  if (compilerPath && extension) {
+    registerCompiler(`${extension}:${compilerPath}`)
+  }
+  const migrationsDirectory = path.join('.', migrationPath)
 
   const processSet = async (set) => {
     console.log(chalk.bold.blue('Processing'), set.store.contentTypeID)
